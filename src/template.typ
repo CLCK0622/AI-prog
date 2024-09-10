@@ -4,6 +4,7 @@
 #let project(
   title: "",
   abstract: [],
+  credit: [],
   authors: (name: ""),
   index-terms: (),
   bibliography: bibliography("refs.bib"),
@@ -66,4 +67,14 @@
   pagebreak()
 
   bibliography
+  pagebreak()
+
+  // Credit page.
+  set par(justify: true)
+  heading(
+    outlined: true,
+    numbering: none,
+    text(1em, "致谢", weight: 700),
+  )
+  credit
 }
