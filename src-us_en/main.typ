@@ -3,11 +3,12 @@
 
 #show: ieee.with(
   title: [Enhanced U-Net Usage on Road Network Prediction],
-  abstract: [The author presents an innovative application of the U-Net architecture, optimized with AdamW and Focal Loss, for predicting road networks from multisource geospatial data. We include river networks and residential areas data from shapefiles (.shp), as well as height information from TIFF files, during training of our machine learning model to predict potential road expansions. Our approach uses a Focal Loss with a pos_weight tensor to make the model sensitive to minor roads that are less represented in complex urban and rural landscapes due to class imbalance. The model was evaluated on 60% training, 20% validation, and 20% test data splits to ensure robustness and generalization in diverse environments. The results demonstrate significant potential for using advanced modeling techniques to predict road network expansions, which could foster area connectivity, facilitate economic growth, and support strategic urban planning initiatives. This work does much to drive forth the technology of road network prediction and highlights its importance in bettering economic and social infrastructures via enhanced geographic connectivity.
+  abstract: [
+    While infrastructural development is still growing tremendously, immediate concern is on a responsive road network prediction framework for quick-evolving environmental and social demands. In the conventional road planning methodology, the heavy reliance on time-consuming and labor-intensive manual surveys and data analysis in urbanization processes that are fast-growing has made it increasingly inefficient. After extensive exploration, this paper presents a very innovative application based on the architecture of U-Net, which utilizes geospatial data to predict road networks that could actually exist. In training the model, river networks, residential area data, and elevation data were used. Using Focal Loss with a `pos_weight` tensor, the model will care more about smaller roads and remote residential areas than before; these may be underrepresented when considering complex urban and rural landscapes due to class imbalance. Results have shown that while the model is limited with the data sources and computational power of the day and hence predicts large roads relatively well, it still demonstrates the full potential an AI model has in road network development and expansion. It improves regional connectivity that can help boost economic growth as well as contribute toward strategic smart city planning. This study represents significant development in road network prediction technology and especially points out its importance in improving the economic and social infrastructure by optimized road network construction.
   ],
   authors: (
     (
-      name: "Yi(Kevin) Zhong",
+      name: "Yi (Kevin) Zhong",
       organization: [No. 2 High School of East China Normal University],
       location: [Shanghai, P.R.China],
       email: "zhongyi070622@gmail.com"
@@ -19,15 +20,15 @@
 
 = Introduction
 
-The burgeoning demand for enhanced road infrastructure necessitates a robust framework for predicting road network expansions that align seamlessly with evolving urban landscapes. Traditional methods of road planning, predominantly reliant on time-intensive manual surveys and straightforward data analysis, are increasingly proving inadequate due to rapid urbanization and the complex interplay of geographical features. In light of this, the integration of advanced geospatial data analytics has become imperative. Recent developments in remote sensing technologies and the widespread adoption of online maps have led to the unprecedented availability of rich geospatial datasets, including RS height data and roads and water data from platforms provided by governments, organizations, and even persons. These datasets provide a great chance for leveraging deep learning techniques to transform urban planning methodologies. 
+The pressing demands for infrastructure development call for immediate attention to a road network construction and expansion prediction framework that would adapt to changing environmental and social conditions. Traditional methods of road planning are heavily reliant on time-consuming and labor-intensive manual surveys and data analyses. However, with increasing rates of urbanization, these methods are becoming increasingly inefficient. It has, therefore, been very important to integrate geospatial data with computer technologies. Recent developments in remote sensing technologies and the widespread adoption of online maps have led to the unprecedented availability of rich geospatial datasets, including RS height data and roads and water data from platforms provided by governments and organizations. These datasets provide a solid foundation for utilizing deep learning to transform urban planning methods in the modern era.
 
-The invention of sophisticated machine learning models, coupled with enhanced computational capabilities (e.g., GPUs), and the surge of diverse training datasets, has set the stage for deep learning to revolutionize several domains. Specifically, in the realm of geospatial analytics, deep learning has been instrumental in addressing complex predictive tasks such as object recognition @AI-road-network-prediction, traffic prediction @deep-learning-road-traffic-prediction, and notably, infrastructure forecasting. These advancements facilitate a more predictive analysis of road network requirements, thus enhancing economic connectivity and supporting sustainable urban development.
+The invention of ever more sophisticated machine learning models, increased computational power, and the development of various and extensive training datasets all combined to make deep learning applications both revolutionary and diverse.
 
-Capitalizing on these technological and methodological advancements, this study employs the U-Net @U-Net architecture, renowned for its efficacy in segmentation tasks, optimized further with the AdamW optimizer and Focal Loss @Focal-Loss to predict potential road network expansions. The model processes multi-source geospatial data, including detailed river networks and residential locations from shapefiles and elevation data from TIFF files, thus providing a comprehensive substrate for predicting road expansions. The implementation of Focal Loss, particularly with a position-weight tensor, addresses the critical challenge of class imbalance, a frequent issue where road segments are underrepresented in diverse urban and rural landscapes.
+In geospatial analysis, deep learning has played a vital role in solving complex prediction tasks such as recognizing traffic networks and predicting the flow of traffic @AI-road-network-prediction @deep-learning-road-traffic-prediction. These developments give strong evidence for the feasibility of deep learning in geospatial prediction, hence making machine learning-powered road planning possible.
 
-The evaluation of the model was rigorously performed using a data split of 60% for training, 20% for validation, and 20% for testing. This distribution ensures a robust validation and testing framework that confirms the model’s accuracy and generalizability across different geographical settings. The ultimate goal of this study is to leverage advanced modeling techniques not only to improve the accuracy and efficiency of road network predictions but also to illustrate how such technological advancements can be effectively utilized to support economic growth and strategic urban planning.
+As a result, this paper utilizes the U-Net architecture, which is demonstrated very well in image segmentation tasks. Further, it trains the model by means of the AdamW optimizer with IoU Loss and Focal Loss to predict the probable road network construction plan. The ultimate goal of this research is the development of deep learning techniques for improving accuracy and efficiency in road network prediction, showing how these technological advancements can be put into effective practice to support economic growth and strategic urban planning.
 
-This paper is structured as follows: after this introduction, Section 2 reviews related work in the field of geo-spatial data analysis in machine learning and road network prediction. Section 3 describes the methodology, including data preparation, model configuration, and the training process. Section 4 presents the results and discusses the implications of the findings. Section 5 discusses the interpretation of the produced results and current limitations. Finally, Section 6 concludes the paper with a summary, contributions to the field, and potential directions for future research.
+This paper is structured as follows: Section 2 presents a review of the related work concerning artificial intelligence technologies, geospatial data analysis, and road network prediction; Section 3 describes our experimental environment, including data processing, model configuration, and the training process; Section 4 reports and interprets the experimental results; Section 5 discusses the meaning of the prediction results, current limitations, and future directions; finally, Section 6 summarizes the paper and its contributions to the field, pointing out possible directions for future research.
 
 = Related Work
 
@@ -35,31 +36,31 @@ The emergence of deep learning has significantly enhanced the ability to predict
 
 == Deep Learning Basics
 
-#figure(
-  image("CNN.drawio.svg"), 
-  caption: [An example of neural network.]
-)
-
 === Convolutional Neural Networks (CNNs)
 
-Convolutional Neural Networks form the cornerstone of modern image analysis, particularly in applications involving grid-like data structures such as images. Originating from the foundational work by LeCun et al. (1998), CNNs utilize layers designed for feature extraction and classification—convolutional layers, pooling layers, and fully connected layers. This architecture makes them exceptionally suited for image and video recognition tasks, including the semantic segmentation required for accurately detecting road networks from aerial imagery.
+Convolutional Neural Networks form the cornerstone of modern image analysis, particularly in applications involving grid-like data structures such as images. Originating from the foundational work by LeCun et al. (1998), CNNs utilize layers designed for feature extraction and classification---convolutional layers, pooling layers, and fully connected layers @CNN. This architecture makes them exceptionally suited for image and video recognition tasks, including the semantic segmentation required for accurately detecting road networks from aerial imagery. @Comparison_CNN shows two typical CNN structures.
+
+#figure(
+  image("Comparison_CNN.svg"), 
+  caption: [Two typical kinds of CNN: LeNet and AlexNet @CNNComparisonImage]
+) <Comparison_CNN>
 
 === U-Net Architecture
 
-Building on the capabilities of CNNs, the U-Net architecture @U-Net introduced by Ronneberger, Fischer, and Brox (2015) specifically targets image segmentation challenges. The "U-shaped" design of this architecture features a contracting path to capture context and a symmetric expanding path that enables precise localization. This structure is particularly effective for geospatial analysis tasks like road network prediction, where accurate segmentation of detailed features like roads from complex backgrounds is crucial.
+Building on the capabilities of CNNs, the U-Net architecture introduced by Ronneberger, Fischer, and Brox (2015) specifically targets image segmentation challenges @U-Net. As shown in @Standard_U-Net , the "U-shaped" design of this architecture features a contracting path to capture context and a symmetric expanding path that enables precise localization. Though originally designed for medical uses, this structure is particularly effective for geospatial analysis tasks like road network prediction, where accurate segmentation of detailed features like roads from complex backgrounds is crucial.
 
 #figure(
   image("u-net-illustration-correct-scale2.svg"),
-  caption: [A standard U-Net structure. (adapted from @U-Net)]
-)
+  caption: [A standard U-Net structure @U-Net]
+) <Standard_U-Net>
 
 === AdamW Optimizer
 
-The optimization of deep learning architectures, such as U-Net, is critically enhanced by the AdamW optimizer. Developed by Loshchilov and Hutter (2017), AdamW @AdamW improves upon the traditional Adam optimizer by decoupling weight decay from the optimization steps. This adjustment addresses convergence issues found in the original Adam algorithm and leads to better generalization in training deep learning models. AdamW is particularly valuable in the training of neural networks for road prediction, where robustness and consistency across varied data are essential.
+The optimization of deep learning architectures, such as U-Net, is critically enhanced by the AdamW optimizer. Developed by Loshchilov and Hutter (2017), AdamW improves upon the traditional Adam optimizer by decoupling weight decay from the optimization steps @AdamW. This adjustment addresses convergence issues found in the original Adam algorithm and leads to better generalization in training deep learning models. AdamW is particularly valuable in the training of neural networks for road prediction, where robustness and consistency across varied data are essential.
 
 === Focal Loss
 
-To effectively train neural networks on imbalanced datasets, Focal Loss @Focal-Loss was introduced by Lin et al. (2017). This advanced loss function is engineered to enhance the model’s focus on hard-to-classify examples by adjusting the standard cross-entropy loss based on the certainty of classification. In the context of road network prediction, where the presence of roads significantly underrepresents the geographical area, Focal Loss is instrumental in enhancing the model's detection capabilities, ensuring that minor but important features such as some remote residential spots are not overlooked.
+To effectively train neural networks on imbalanced datasets, Focal Loss was introduced by Lin et al. (2017) @Focal-Loss. This advanced loss function is engineered to enhance the model’s focus on hard-to-classify examples by adjusting the standard cross-entropy loss based on the certainty of classification. In the context of road network prediction, where the presence of roads significantly underrepresents the geographical area, Focal Loss is instrumental in enhancing the model's detection capabilities, ensuring that minor but important features such as some remote residential spots are not overlooked.
 
 == Applications
 
@@ -89,28 +90,28 @@ Given that we are utilizing an advanced deep learning model on this topic, the s
 
 === Data Source
 
-Data for this project is mainly from several institutions: the National Geomatics Center of China, the National Catalogue Service For Geographic Information, the National Earth System Science Data Center, and the Geospatial Data Cloud. According to some geographic studies(ref), we should consider a large variety of factors, including height, slope, soil, climate, and residential area, when designing a new road. Specifically, the evaluation of a road design should focus on lowering the cost and stimulating the connection between areas. However, because of the limitation of data source and computing power, we simply choose height(DEM, tiff), rivers(shp), and residential areas(shp) as input as an example, while the road network as output.
+Data for this project is mainly from several institutions: the National Geomatics Center of China, the National Catalogue Service For Geographic Information, the National Earth System Science Data Center, and the Geospatial Data Cloud. According to some geographic studies(ref), we should consider a large variety of factors, including height, slope, soil, climate, and residential area, when designing a new road. Specifically, the evaluation of a road design should focus on lowering the cost and stimulating the connection between areas. However, because of the limitation of data source and computing power, we simply choose height(`.tiff`), rivers(`.shp`), and residential areas(`.shp`) as input, while the road network as output.
 
 === Clipping and Re-projection
 
-For better efficiency and lower computing power, we clip the data into $2000 times 2000$ pixels. As the data is from different sources, we can read and reproject river, residential, road, and boundary data into EPSG:4490 @epsg4490 with geopandas.
+For better efficiency and lower computing power, we clip the data into $1500 times 1500$ pixels. As these datasets are from different sources and have different coordinate systems, we can read and reproject river, residential, road, and boundary data into EPSG:4490 with `geopandas` @epsg4490.
 
 === Visualization
 
-We choose Ningxia Province as an example. The following graph is a picture generated from the geospatial data mentioned before. We utilize matplotlib for this step.
+We choose Ningxia Hui Autonomous Region as an example. The following graph is a picture generated from the geospatial data mentioned before. We utilize `matplotlib` for this step.
 
-According to the graph, the blue lines are rivers, while the red ones refer to roads. These grey spots are residential spots.
+According to @Ningxia-geospatial-data, the blue lines are rivers, while the red ones refer to roads. These grey spots are residential spots.
 
 #figure(
   image("GPD-Ningxia.png"),
-  caption: [Data in Ningxia, China as an example.]
-)
+  caption: [Geospatial data in Ningxia, China as an example.]
+) <Ningxia-geospatial-data>
 
-After re-projecting coordinate systems and combining all single height files together, we can directly visualize the height data with Rasterio and Matplotlib. To save resources as mentioned above, we clipped the height data to $2000 times 2000$ pixels.
+After re-projecting coordinate systems and combining all single height files together, we can directly visualize the height data with `rasterio`, `geopandas` and `matplotlib`. To save resources as mentioned above, we clipped the height data to $1500 times 1500$ pixels. After visualization, we normalized the height data for better training.
 
 #figure(
   image("clipped_DEM.png"),
-  caption: [Height data (clipped) in Ningxia, China.]
+  caption: [Height data (clipped & normalized) in Ningxia, China.]
 )
 
 === Re-organized Data Structure
