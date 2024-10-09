@@ -1,19 +1,11 @@
-#import "@preview/charged-ieee:0.1.0": ieee
+#import "template.typ": *
 #import "@preview/lovelace:0.3.0": *
 
-#show: ieee.with(
+#show: project.with(
   title: [Enhanced U-Net Usage on Road Network Prediction],
   abstract: [
     While infrastructural development is still growing tremendously, immediate concern is on a responsive road network prediction framework for quick-evolving environmental and social demands. In the conventional road planning methodology, the heavy reliance on time-consuming and labor-intensive manual surveys and data analysis in urbanization processes that are fast-growing has made it increasingly inefficient. After extensive exploration, this paper presents a very innovative application based on the architecture of U-Net, which utilizes geospatial data to predict road networks that could actually exist. In training the model, river networks, residential area data, and elevation data were used. Using Focal Loss with a `pos_weight` tensor, the model will care more about smaller roads and remote residential areas than before; these may be underrepresented when considering complex urban and rural landscapes due to class imbalance. Results have shown that while the model is limited with the data sources and computational power of the day and hence predicts large roads relatively well, it still demonstrates the full potential an AI model has in road network development and expansion. It improves regional connectivity that can help boost economic growth as well as contribute toward strategic smart city planning. This study represents significant development in road network prediction technology and especially points out its importance in improving the economic and social infrastructure by optimized road network construction.
   ],
-  authors: (
-    (
-      name: "Yi (Kevin) Zhong",
-      organization: [No. 2 High School of East China Normal University],
-      location: [Shanghai, P.R.China],
-      email: "zhongyi070622@gmail.com"
-    ),
-  ),
   index-terms: ("Road Network Prediction", "Deep Learning", "Urban Planning", "Focal Loss Optimization", "U-Net Architecture"),
   bibliography: bibliography("refs.bib"),
 )
@@ -116,9 +108,9 @@ After re-projecting coordinate systems and combining all single height files tog
 
 === Re-organized Data Structure
 
-To utilize these data together as an input source, we can combine all data above into the DEM data, which is $2000 times 2000$ pixels. In this way, the input source will have 3 channels, and output should be a single channel.
+To utilize these data together as an input source, we can combine all data above into the DEM data, which is $1500 times 1500$ pixels. In this way, the input source will have 3 channels(height, rivers and residential areas), and output should be a single channel(roads).
 
-After that, the data has to be split into three data-loaders. Specifically, 60% is for training, 20% for validation, and the rest for testing. 
+After that, the data has to be split into three data-loaders. Specifically, 60% is for training, 20% for validation, and 20% for testing. 
 
 == Framework
 
@@ -126,7 +118,9 @@ Originally developed for medical uses, the U-Net architecture is well-suited for
 
 === Model Architecture
 
-We utilize the U-Net architecture, a convolutional neural network originally designed for biomedical image segmentation. This kind of architecture is highly effective in situations which need accurate location because it has two features, a contraction part for the context and an expansion part to enable exact localization. By the implementation of several double convolutional blocks that consist of two sets of convolutions with interjections of batch normalization and ReLU, the U-Net architecture is important for high performance in road segmentation as it helps to capture such intricate features that come in various sizes, from different geospatial data such as satellite images and elevation maps. The architecture consists of several down-sampling layers which allow the amount of features to increase while decreasing the spatial size of the data, then one or several up-sampling layers are applied to bring back the size of the features and interlace the features from the corresponding down-sampling layers via skip mechanisms. This allows finer visual detail, which is usually lost, to be retained during the down-sampling procedure which results in the model recovering most vital parts of the road across different terrains.
+We utilize the U-Net architecture, a convolutional neural network originally designed for biomedical image segmentation. This kind of architecture is highly effective in situations which need accurate location because it has two features, a contraction part for the context and an expansion part to enable exact localization. By the implementation of several double convolutional blocks that consist of two sets of convolutions with interjections of batch normalization and ReLU, the U-Net architecture is important for high performance in road segmentation as it helps to capture such intricate features that come in various sizes, from different geospatial data such as satellite images and elevation maps. 
+
+The architecture consists of several down-sampling layers which allow the amount of features to increase while decreasing the spatial size of the data, then one or several up-sampling layers are applied to bring back the size of the features and interlace the features from the corresponding down-sampling layers via skip mechanisms. This allows finer visual detail, which is usually lost, to be retained during the down-sampling procedure which results in the model recovering most vital parts of the road across different terrains. As shown in @model_struct is our U-Net architecture and arguments.
 
 #figure(
     kind: "algorithm",
@@ -142,34 +136,22 @@ We utilize the U-Net architecture, a convolutional neural network originally des
             + UpSampling with skip connections ($512 -> 256 -> 128 -> 64$)
             + Output Convolution ($64 -> 1$, Sigmoid Activation)
     ]
-)
+) <model_struct>
 
 === Loss Functions
 
-#figure(
-    kind: "algorithm",
-    supplement: [Algorithm],
-    caption: [Loss Functions],
-    pseudocode-list(booktabs: true, stroke: none)[
-        - *Define* FocalLoss:
-          - *Parameters*: $alpha=0.5$, $gamma=3$
-          - *Functionality*:
-            - Compute BCE Loss with logits
-            - Adjust loss focus based on ground truth relevance and prediction probability
-        
-        - *Define* ConnectivityLoss:
-          - *Parameters*: $alpha=0.001$
-          - *Functionality*:
-            - Use a $3 times 3$ convolution kernel to dilate predicted masks
-            - Compute the mean difference between dilated mask and original prediction
-    ]
-)
+In order to solve problems of class imbalance and the difficulty of predicting a road network, our model employs two specialized loss functions: Focal Loss and IoU Loss. Focal Loss is designed to fine-tune the model's focus towards hard-to-classify instances, in this case enhancing the performance of the model on minority classes by altering this normal cross-entropy loss to include a modulating factor. This helps to bring down the weight of the losses for well-classified instances, such that the model concentrates on difficult examples, which are common in circumstances where roads cover a small fraction of the geographical field. In this case, we use an $text(alpha)$-balanced variant of the focal loss @Focal-Loss:
 
-In order to solve problems of class imbalance and the difficulty of predicting a road network, our model employs two specialized loss functions: Focal Loss and a custom Connectivity Loss. Focal Loss is designed to fine-tune the model's focus towards hard-to-classify instances, in this case enhancing the performance of the model on minority classes by altering this normal cross-entropy loss to include a modulating factor. This helps to bring down the weight of the losses for well-classified instances, such that the model concentrates on difficult examples, which are common in circumstances where roads cover a small fraction of the geographical field. In this case, we use an $text(alpha)$-balanced variant of the focal loss:
+$ alpha_t = cases(
+alpha "      if label" = 1,
+1 - alpha " else"
+) $
 
-$ "FL"(p_t) = -alpha_t (1-p_t)^gamma log(p_t). $
+$ "FL"(p_t) = -alpha_t (1-p_t)^gamma log(p_t) $
 
-The Connectivity Loss further augments the model's capability by encouraging spatial contiguity in the predicted road networks. It assigns a penalty to the model for not predicting connected stretches of roads thus enhancing the chances of predicting interconnected roads. Hence, the consequent optimal output coming from this combination of loss functions is a road map that is probably more usable in the real world for urban design and traffic optimization.
+The IoU Loss has a different computation method called Intersection over Union, and it directly compares the overlap of the predicted results with the reference image. This helps in improving the model's accuracy for the boundaries and direction of roads.
+
+The Connectivity Loss further augments the model's capability by encouraging spatial contiguity in the predicted road networks. It assigns a penalty to the model for not predicting connected stretches of roads thus enhancing the chances of predicting interconnected roads. Hence, the consequent optimal output coming from this combination of loss functions is a road map that is probably more usable in the real world for urban design and traffic optimization. @connectivity_loss demonstrates the realization of Connectivity Loss.
 
 #figure(
     kind: "algorithm",
@@ -190,11 +172,15 @@ The Connectivity Loss further augments the model's capability by encouraging spa
         - *Return*:
           - connectivity_loss: Scalar value representing the loss due to disconnected areas.
     ]
-)
+) <connectivity_loss>
+
+=== AdamW Optimizer
+
+During the training process, we used the AdamW optimizer, a variant of the original Adam optimizer that decouples weight decay from the optimization step to prevent overfitting. By combining weight decay with momentum estimation, it adjusts the learning rate, helping the model converge efficiently.
 
 === Training Process
 
-The training process is meticulously designed to optimize the U-Net model over multiple epochs using the AdamW optimizer, a variant of the Adam optimizer that incorporates weight decay to combat overfitting. The model is trained using a dataset split into 60% training, 20% validation, and 20% testing portions, ensuring comprehensive coverage and robust testing across diverse geospatial features. Each training session involves forward propagation of batches of input data through the network, followed by the computation of losses using the aforementioned Focal and Connectivity Loss functions. Backpropagation adjusts the model weights to minimize these losses, with the AdamW optimizer facilitating efficient convergence by adjusting learning rates based on weight decay and moment estimates. Validation runs intermittently provide feedback on model performance, preventing overfitting and ensuring the model's generalizability to unseen data. The training loop is enhanced with connectivity loss adjustments that progressively increase its influence, ensuring that the model increasingly prioritizes the prediction of connected road networks as training progresses. This structured training regimen ensures that the model not only learns to predict road presence but does so in a way that is practically applicable for effective road network analysis and planning.
+The model is trained using a dataset split into 60% training, 20% validation, and 20% testing portions, ensuring comprehensive coverage and robust testing across diverse geospatial features. Each training session involves forward propagation of batches of input data through the network, followed by the computation of losses using the Focal and IoU Loss functions mentioned before. Backpropagation adjusts the model weights to minimize these losses, with the AdamW optimizer facilitating efficient convergence by adjusting learning rates based on weight decay and moment estimates. Validation runs provide feedback on model performance, preventing overfitting and ensuring the model's generalizability to unseen data. The training loop is enhanced with connectivity loss adjustments that progressively increase its influence, ensuring that the model increasingly prioritizes the prediction of connected road networks as training progresses. This structured training regimen ensures that the model not only learns to predict road presence but does so in a way that is practically applicable for effective road network analysis and planning.
 
 #figure(
     kind: "algorithm",
@@ -213,6 +199,63 @@ The training process is meticulously designed to optimize the U-Net model over m
 
 = Results
 
+This work investigates the enhanced U-Net model's influence on the task, including IoU Loss and Focal Loss on improving the effectiveness of model performance in road network prediction. This experiment was designed to assess the strength of a model when it came to predicting complex road networks based on the framework considered for this work. We present the model's prediction results under various road conditions and make a quantitative comparison with the performances of baseline models through extensive visual and quantitative analysis.
+
+Combination of IoU Loss with Focal Loss increased the model sensitivity to small targets and accordingly improved the general spatial prediction accuracy of the model. IoU Loss benefits boundary localization accuracy by optimizing the overlap ratio between predicted and actual road areas. Meanwhile, Focal Loss enhances imbalance data processing of the model, i.e., road versus non-road regions, by decreasing the weight of easy samples and increasing that of hard samples.
+
+The losses of training and validation during 500 epochs converged slowly; however, due to the complexity of the data, it struggled in this model. After all, road construction factors extend a lot more beyond the datasets we use. Moreover, slight overfitting took place during the training.
+
+#figure(
+  image("model_loss.png"),
+  caption: [The losses during training.]
+)
+
+The experimental results shows that the U-Net model using a combination of the two losses achieved an average IoU score of 0.92 on the training set, which is significantly higher than the IoU score of the U-Net model that used traditional binary cross-entropy loss, with a score of just 0.4. This improvement is reflected not only in quantitative metrics but also visually validated. It can be seen from @training_set that the final prediction results are very similar to the real road networks. Plain CNNs can hardly learn from this kind of input data, so they are excluded in the comparison of the results.
+
+#figure(
+  image("training_set.png"),
+  caption: [Results on training sets.]
+) <training_set>
+
+As can be seen from the @validation_set_interpreted, while the computational powers and technology present today cannot allow us to generate the predictions in a vector-like format of a road network, yet the optimized U-Net architecture has done relatively well in predicting them. We can develop an optimized road network design by post-processing and interpreting the generated predictions based on the given input dataset. In the figure @validation_set_interpreted, the base layer represents the ground truth of the road network, while the dotted layer indicates the predicted road orientation. Besides, the red lines present the major pattern of roads identified from the predictions. Apparently, for some main roads, the predictions made by the model are quite consistent with the ground truth. While constructing the road networks involves many complicated factors, causing the predictions of some minor roads by the model to deviate from the real-world status.
+
+#figure(
+  image("validation_set_interpreted.png"),
+  caption: [Results on testing sets.]
+) <validation_set_interpreted>
+
 = Discussion
+
+== Discussion on the Current Status of the Model
+
+In the current study, significant improvements were achieved by using the optimized U-Net architecture in cooperation with dedicated loss functions; however, road network generation is still facing numerous challenges in practical applications. The main challenge corresponds to the complex set of factors that influence road planning, considering that it involves not only topography and existing infrastructure but also regional development policies and the requirements for environmental protection. The present model is based on bounded datasets, which may not contain all the influencing factors; hence, prediction accuracy will be lower in certain specific complex scenarios.
+
+Also, regarding the development of road networks, it is hard to avoid subjective human decisions. Therefore, the road networks that this model predicts, based on mega datasets, would be more practical or effective. Regarding these views, the current model seems to be more suitable for predictions of the construction and extension of large-scale road traffic networks, while in terms of smaller-scale roadways specifics, it can serve only as a reference. 
+
+Predicting road networks is not only about identifying the roads but requires an understanding of how they structure varied physical and social environments. The model so far is successful in terms of handling visual inputs, but its ability to generalize into changing settings remains restricted because it lacks an understanding of the broader environmental factors at play. This is a call for better design and collection of datasets to further improve the model's performance.
+
+== Directions for Model Improvement
+
+=== Enhancing Dataset Diversity
+
+Future studies shall be oriented toward further enhancement of the training dataset in both size and diversity to improve the generalization capability and prediction accuracy of the model. This may be attained with a range of data, including satellite image types, geological maps, land use, and urban planning documents that provide a wide perspective to the road prediction model.
+
+Moreover, the geographical and environmental diversity of the dataset should be further enhanced to enable the model to understand how road design and construction go about in different settings.
+
+=== Adopting the Attention U-Net Architecture
+
+With the importance of spatial attributes and contextual data inherent in roadway systems, one critical area for further development involves the incorporation of the attention gate mechanism within the existing U-Net framework. The Attention U-Net model has more focused attention on important regions of the image; hence, it returns more accurate predictions with the identification and reconstruction of challenging roadway configurations against the complexively populated backgrounds @Attention_U-Net.
+
+=== Developing an Effective Connectivity Loss
+
+Ultimately, it should incorporate a strong Connectivity Loss in order to guarantee visual coherence and functional effectiveness in the road networks being built. A loss function that would put stress on connectivity improvement among the predicted roads, without excessive expansion, leading to the formation of unrealistic geometries, should be included. This new loss will give the road generation using conditional dilation methodologies, along with post-processing on images, a huge boost in quality and increase its reliability for real-world applications.
+
+== Future Research Prospects in the Field
+
+Road network forecasting is a particularly complicated discipline with wide-ranging implications within urban planning and geographic information systems. As machine learning methodologies continue to advance and more computational power becomes available, future research efforts are expected to address larger datasets, more complex models, and superior performance in terms of the quality of predictions.
+
+Other future research efforts should focus on how to effectively integrate data from multiple sources and apply advanced machine learning techniques to understand and predict road network conditions in complex urban environments. Also, a study of how model predictions can be integrated into real-world urban planning and traffic management systems would be another interesting area for scholarly input. Efforts like these would enhance the practical value of road network forecasts while promoting intelligent transport systems and smart cities.
+
+In conclusion, with improvements in datasets, increased computational power, and the integration of interdisciplinary research approaches, it is expected that smarter, more precise, and more adaptable road network prediction systems will be developed in the future.
 
 = Conclusion
